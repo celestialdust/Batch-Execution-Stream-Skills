@@ -79,45 +79,28 @@ This skill orchestrates other superpowers skills:
 
 ### Prerequisites
 
-First, install [Superpowers](https://github.com/obra/superpowers):
-
-```bash
-# For Claude Code
-git clone https://github.com/obra/superpowers.git ~/.claude/plugins/superpowers
-```
-
-This plugin orchestrates superpowers skills, so superpowers must be installed first.
-
-### Method 1: Via Git (Recommended)
-
-Install directly from GitHub:
-
-```bash
-# Clone to Claude Code plugins directory
-git clone https://github.com/celestialdust/Batch-Execution-Stream-Skills.git ~/.claude/plugins/batch-execution-stream
-
-# Or for project-specific installation
-git clone https://github.com/celestialdust/Batch-Execution-Stream-Skills.git .claude/plugins/batch-execution-stream
-```
-
-### Method 2: Manual Installation
-
-1. Download or clone this repository
-2. Copy to one of these locations:
-   - **User-level:** `~/.claude/plugins/batch-execution-stream/`
-   - **Project-level:** `.claude/plugins/batch-execution-stream/`
-
-### Method 3: Via Claude Code Plugin Manager (Future)
-
-Once published to the official marketplace:
+Install [Superpowers](https://github.com/obra/superpowers) first. This plugin orchestrates superpowers skills, so they must be available.
 
 ```
-/plugin install batch-execution-stream
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace
 ```
 
-### Verify Installation
+### Install This Plugin
 
-Start Claude Code and verify the plugin is loaded:
+**Step 1:** Register the marketplace:
+
+```
+/plugin marketplace add celestialdust/batch-execution-stream-marketplace
+```
+
+**Step 2:** Install the plugin:
+
+```
+/plugin install batch-execution-stream@batch-execution-stream-marketplace
+```
+
+**Step 3:** Verify:
 
 ```
 /plugin list
@@ -127,74 +110,147 @@ You should see `batch-execution-stream` in the list.
 
 ## Usage
 
-### Option 1: Slash Command (Quick)
-
-Use the custom command to invoke the skill:
+### Slash Command
 
 ```
 /workstream
 ```
 
-This immediately activates the workstream-batch-execution skill.
-
-### Option 2: Direct Skill Invocation
-
-Reference the skill directly in your conversation:
+### Direct Skill Invocation
 
 ```
 Use batch-execution-stream:workstream-batch-execution to orchestrate this implementation
 ```
 
-### Option 3: Let Claude Discover
+## Standard Workflow with Superpowers
 
-When you have a multi-workstream project, Claude will automatically discover and suggest this skill based on your project structure.
+This plugin is designed as **Step 3** in a full development workflow using superpowers skills. Here's the end-to-end flow:
 
-## Example Use Case
+### Step 1: Brainstorm and Design
 
-**Project:** Build auth service, API gateway, and integration layer
+Use `superpowers:brainstorming` (or `/brainstorm`) to explore the feature, identify service boundaries, and produce an approved design doc.
 
-**Workstreams:**
-- WS-A: Auth Service → `.worktrees/WS-A`
-- WS-B: API Gateway → `.worktrees/WS-B`
-- WS-C: Integration → `.worktrees/WS-C`
-
-**Execution:**
 ```
-Batch 1 (Parallel): A1, A2, B1 → 3 agents simultaneously
-Batch 2 (Parallel): A3, B2 → 2 agents simultaneously
-Merge Point MP1: Integration test auth→gateway flow
-Batch 3 (Sequential): C1 → 1 agent with reviews
+/brainstorm
+
+You: "I need to build a distributed task queue with a web dashboard and worker pool"
 ```
 
-**Result:** 3 workstreams completed with 5 agents in parallel, no conflicts, clean integration.
+**Output:** Approved design doc with clear service boundaries identified.
+
+### Step 2: Write Implementation Plan
+
+Use `superpowers:writing-plans` (or `/write-plan`) to create a detailed, bite-sized implementation plan from the design doc.
+
+```
+/write-plan
+
+You: "Write the implementation plan based on our approved design"
+```
+
+**Output:** Plan at `docs/plans/YYYY-MM-DD-<feature>.md` with exact files, commands, and expected outputs per task.
+
+### Step 3: Execute with Workstream-Batch Orchestration
+
+Use this plugin (or `/workstream`) to decompose the plan into parallel workstreams and execute.
+
+```
+/workstream
+
+You: "Execute this plan using workstream-batch execution"
+```
+
+**What happens:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Controller (Single Claude Code Session)                     │
+│                                                             │
+│ Phase 1: Decompose plan into workstreams (WS-A, WS-B...)   │
+│          Create git worktrees per workstream                │
+│                                                             │
+│ Phase 2: Model task dependencies into batches + merge points│
+│                                                             │
+│ Phase 3: Set up EXECUTION-DASHBOARD.md                      │
+│                                                             │
+│ Phase 4: Execute batches                                    │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐                   │
+│  │Subagent 1│ │Subagent 2│ │Subagent 3│  ← parallel       │
+│  │Task A1   │ │Task B1   │ │Task E1   │                   │
+│  │WS-A tree │ │WS-B tree │ │WS-E tree │                   │
+│  └──────────┘ └──────────┘ └──────────┘                   │
+│          ↓ verify ↓ verify ↓ verify                        │
+│  Batch 1 ✅ → Dispatch Batch 2 → ... → Merge Point → ...  │
+│                                                             │
+│ Phase 5: Capture learnings back to CLAUDE.md                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Step 4: Finish and Ship
+
+After all batches complete, `superpowers:finishing-a-development-branch` handles final integration, PR creation, and worktree cleanup.
+
+### Complete Flow Summary
+
+```
+/brainstorm           → Design doc with service boundaries
+        ↓
+/write-plan           → Detailed implementation plan
+        ↓
+/workstream           → Parallel execution across workstreams
+        ↓
+finishing-a-branch    → PR, merge, cleanup
+```
+
+### When to Use Which
+
+| Situation | Use |
+|-----------|-----|
+| New feature, unclear requirements | `/brainstorm` |
+| Approved design, need implementation plan | `/write-plan` |
+| Plan ready, 2+ service boundaries, complex deps | `/workstream` |
+| Plan ready, single service, sequential tasks | `superpowers:executing-plans` |
+| Plan ready, independent tasks, no complex deps | `superpowers:dispatching-parallel-agents` |
+| Plan ready, need review between each task | `superpowers:subagent-driven-development` |
+
+## Example
+
+**Project:** Build auth service + API gateway + integration layer
+
+```
+Step 1: /brainstorm
+  → Design doc: 3 services, JWT auth, rate limiting, integration tests
+
+Step 2: /write-plan
+  → Plan: 10 tasks across 3 workstreams, 4 batches, 2 merge points
+
+Step 3: /workstream
+  → Phase 1: Create .worktrees/WS-A, .worktrees/WS-B, .worktrees/WS-C
+  → Phase 2: Batch 1 (A1,A2,B1) → Batch 2 (A3,B2) → MP1 → Batch 3 (C1) → Batch 4 (A4,B3,C2) → MP2
+  → Phase 3: EXECUTION-DASHBOARD.md created
+  → Phase 4: 3 subagents in Batch 1, 2 in Batch 2, review at MP1, 1 in Batch 3, 3 in Batch 4, review at MP2
+  → Phase 5: CLAUDE.md updated with JWT format, rate limiting patterns
+
+Step 4: finishing-a-development-branch → PR created, worktrees cleaned up
+```
+
+**Result:** 10 tasks across 3 workstreams, up to 3 subagents in parallel, zero conflicts, clean integration.
 
 ## Contributing
 
-This skill is under active development. Contributions welcome:
+Contributions welcome:
 
-1. **Testing:** Run baseline scenarios, identify rationalizations agents use
-2. **Examples:** Add real-world examples of multi-workstream projects
-3. **Tooling:** Build dashboard automation, dependency graph visualization
-4. **Integration:** Connect with other execution frameworks
-
-## TDD Status
-
-Following Test-Driven Development for skills:
-
-- ✅ **GREEN Phase:** Initial skill written
-- ⏳ **RED Phase:** Baseline testing needed
-- ⏳ **REFACTOR Phase:** Bulletproofing against rationalizations
-
-See `writing-skills` discipline for TDD methodology applied to documentation.
+1. **Testing:** Run baseline scenarios, identify gaps
+2. **Examples:** Add real-world multi-workstream project examples
+3. **Tooling:** Dashboard automation, dependency graph visualization
 
 ## License
 
-MIT - Use freely, attribute if sharing publicly.
+MIT
 
-## Contact
+## Links
 
-For questions, issues, or collaboration: [GitHub Issues](https://github.com/celestialdust/Batch-Execution-Stream-Skills/issues)
-
----
-
-**Status:** Initial release - feedback and iteration welcome!
+- [Plugin Repository](https://github.com/celestialdust/Batch-Execution-Stream-Skills)
+- [Marketplace](https://github.com/celestialdust/batch-execution-stream-marketplace)
+- [Superpowers](https://github.com/obra/superpowers)
+- [Issues](https://github.com/celestialdust/Batch-Execution-Stream-Skills/issues)
