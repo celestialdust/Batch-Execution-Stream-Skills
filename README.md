@@ -11,6 +11,20 @@ Execute multi-workstream projects by:
 - **Visual Tracking:** ASCII dashboard for execution state visibility
 - **Learning Feedback:** Systematic capture of insights back to project docs
 
+## Built on Superpowers
+
+This plugin extends the [Superpowers](https://github.com/obra/superpowers) skill framework by [@obra](https://github.com/obra), adding workstream-batch orchestration capabilities for large-scale parallel agent execution.
+
+**Superpowers** teaches Claude Code foundational skills like brainstorming, test-driven development, systematic debugging, and subagent-driven development. This plugin builds on that foundation to handle complex multi-workstream projects with 5-10+ agents running in parallel.
+
+**Key difference:** While Superpowers provides sequential and simple parallel execution patterns, this plugin adds:
+- Workstream decomposition with git worktree isolation
+- Batch-and-wave dependency modeling with merge points
+- Dashboard-based execution tracking
+- Systematic orchestration of existing superpowers skills
+
+**Prerequisite:** Install [Superpowers](https://github.com/obra/superpowers) first, as this plugin orchestrates superpowers skills like `using-git-worktrees`, `dispatching-parallel-agents`, and `subagent-driven-development`.
+
 ## Plugin Structure
 
 ```
@@ -62,6 +76,17 @@ This skill orchestrates other superpowers skills:
 | Each Task | `superpowers:test-driven-development` (via subagents) |
 
 ## Installation
+
+### Prerequisites
+
+First, install [Superpowers](https://github.com/obra/superpowers):
+
+```bash
+# For Claude Code
+git clone https://github.com/obra/superpowers.git ~/.claude/plugins/superpowers
+```
+
+This plugin orchestrates superpowers skills, so superpowers must be installed first.
 
 ### Method 1: Via Git (Recommended)
 
