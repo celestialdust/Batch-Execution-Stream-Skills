@@ -1,0 +1,22 @@
+{
+  "name": "batch-execution-stream",
+  "version": "0.1.0",
+  "description": "Orchestrate parallel agent work across multiple service boundaries with workstream-batch execution model",
+  "author": {
+    "name": "Joey Xue",
+    "url": "https://github.com/celestialdust"
+  },
+  "homepage": "https://github.com/celestialdust/Batch-Execution-Stream-Skills",
+  "repository": "https://github.com/celestialdust/Batch-Execution-Stream-Skills",
+  "license": "MIT",
+  "keywords": [
+    "parallel-execution",
+    "workstream",
+    "batch-execution",
+    "orchestration",
+    "multi-agent",
+    "git-worktrees",
+    "dependency-modeling",
+    "superpowers"
+  ]
+}

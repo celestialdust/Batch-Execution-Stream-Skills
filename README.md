@@ -1,6 +1,6 @@
-# Workstream-Batch Execution Skill
+# Batch Execution Stream Plugin
 
-A comprehensive skill for Claude Code/AI agents to execute large implementation plans by orchestrating parallel agent work across multiple service boundaries.
+A Claude Code plugin for orchestrating parallel agent work across multiple service boundaries with workstream-batch execution model.
 
 ## Overview
 
@@ -15,11 +15,21 @@ Execute multi-workstream projects by:
 
 This skill captures the workflow from [this blog post](https://x.com/xuejoey) on running 8 AI agents in parallel off a single design doc through explicit specification and execution modeling.
 
-## Files
+## Plugin Structure
 
-- **SKILL.md** - Main skill documentation with 5-phase process
-- **dashboard-template.md** - Ready-to-use ASCII dashboard template
-- **integration-guide.md** - Reference for orchestrating existing superpowers skills
+```
+batch-execution-stream/
+├── .claude-plugin/
+│   └── plugin.json          # Plugin metadata
+├── commands/
+│   └── workstream.md        # /workstream slash command
+├── skills/
+│   └── workstream-batch-execution/
+│       ├── SKILL.md         # Main skill documentation
+│       ├── dashboard-template.md    # ASCII dashboard template
+│       └── integration-guide.md     # Skill orchestration reference
+└── README.md
+```
 
 ## When to Use
 
@@ -57,17 +67,66 @@ This skill orchestrates other superpowers skills:
 
 ## Installation
 
-### For Claude Code
+### Method 1: Via Git (Recommended)
 
-Copy to your Claude Code skills directory:
+Install directly from GitHub:
 
 ```bash
-cp -r . ~/.claude/skills/workstream-batch-execution/
+# Clone to Claude Code plugins directory
+git clone https://github.com/celestialdust/Batch-Execution-Stream-Skills.git ~/.claude/plugins/batch-execution-stream
+
+# Or for project-specific installation
+git clone https://github.com/celestialdust/Batch-Execution-Stream-Skills.git .claude/plugins/batch-execution-stream
 ```
 
-### For Other AI Agents
+### Method 2: Manual Installation
 
-Adapt the skill to your agent's skill system. The core concepts (workstream decomposition, batch modeling, dashboard tracking) are tool-agnostic.
+1. Download or clone this repository
+2. Copy to one of these locations:
+   - **User-level:** `~/.claude/plugins/batch-execution-stream/`
+   - **Project-level:** `.claude/plugins/batch-execution-stream/`
+
+### Method 3: Via Claude Code Plugin Manager (Future)
+
+Once published to the official marketplace:
+
+```
+/plugin install batch-execution-stream
+```
+
+### Verify Installation
+
+Start Claude Code and verify the plugin is loaded:
+
+```
+/plugin list
+```
+
+You should see `batch-execution-stream` in the list.
+
+## Usage
+
+### Option 1: Slash Command (Quick)
+
+Use the custom command to invoke the skill:
+
+```
+/workstream
+```
+
+This immediately activates the workstream-batch-execution skill.
+
+### Option 2: Direct Skill Invocation
+
+Reference the skill directly in your conversation:
+
+```
+Use batch-execution-stream:workstream-batch-execution to orchestrate this implementation
+```
+
+### Option 3: Let Claude Discover
+
+When you have a multi-workstream project, Claude will automatically discover and suggest this skill based on your project structure.
 
 ## Example Use Case
 
