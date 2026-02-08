@@ -127,7 +127,7 @@ digraph execution_choice {
 - Implementation plan exists
 - Design has 2+ independent service boundaries
 - Tasks have complex dependencies (parallel, sequential, convergence)
-- Need to coordinate 5-10+ agents in parallel
+- Need to coordinate 5-10+ parallel subagents from a single session
 - **Output:** Executed implementation with dashboard tracking
 
 ## Phase-by-Phase Skill Calls
@@ -161,43 +161,47 @@ superpowers:using-git-worktrees → Create .worktrees/WS-C
 - Initialize with workstreams, batches, merge points
 - Set initial state (all ⏳ Runnable or ⏸️ Blocked)
 
-### Phase 4: Batch Execution
+### Phase 4: Batch Execution (Single Session, Parallel Subagents)
 
-**For each batch (sequential execution of batches):**
+**You are the controller.** All subagents dispatched from your single session via the Task tool. Subagents work in parallel in their assigned worktrees.
 
 #### Scenario A: All tasks in batch are independent
 
-```bash
-# Parallel dispatch
-superpowers:dispatching-parallel-agents
-  ↓
-  Task A1 in .worktrees/WS-A  } Simultaneous
-  Task A2 in .worktrees/WS-A  } execution
-  Task B1 in .worktrees/WS-B  }
+```
+Controller dispatches via superpowers:dispatching-parallel-agents:
+
+  Task(Subagent-1, "Implement A1 in .worktrees/WS-A")  ─┐
+  Task(Subagent-2, "Implement A2 in .worktrees/WS-A")   ├─ All run simultaneously
+  Task(Subagent-3, "Implement B1 in .worktrees/WS-B")  ─┘
+
+Controller waits → All return → Controller verifies → Updates dashboard
 ```
 
-**Each agent automatically uses:**
+**Each subagent automatically uses:**
 - `test-driven-development` (write test first)
 - `verification-before-completion` (verify before claiming done)
 
 #### Scenario B: Tasks need review checkpoints
 
-```bash
-# Sequential with reviews
-superpowers:subagent-driven-development
-  ↓
+```
+Controller uses superpowers:subagent-driven-development:
+
+  Dispatch Subagent → Returns → Controller reviews → Dispatch next
   Task A1 → Review → Task A2 → Review → Task A3
 ```
 
 #### At Merge Points
 
-```bash
-superpowers:requesting-code-review
-  ↓
-  Review changes from multiple workstreams
+```
+Controller handles merge points directly:
+
+  superpowers:requesting-code-review
+    ↓
+  Merge branches from multiple worktrees
   Run integration tests
   Verify interfaces/contracts
-  Mark merge point complete
+  Mark merge point complete on dashboard
+  Dispatch next batch
 ```
 
 ### Phase 5: Learning Capture
@@ -280,7 +284,7 @@ Use: dispatching-parallel-agents
 → Use `brainstorming` first
 
 ❌ **Skipping worktree setup**
-→ Agents will conflict, always use `using-git-worktrees`
+→ Subagents will conflict, always use `using-git-worktrees`
 
 ## Example: Three-Workstream Project
 
@@ -301,11 +305,11 @@ Design: Auth service + API Gateway + Integration layer
 3. Dashboard:
    Copy dashboard-template.md → EXECUTION-DASHBOARD.md
 
-4. Execution:
-   - Batch 1 → dispatching-parallel-agents (3 agents)
-   - Batch 2 → dispatching-parallel-agents (2 agents)
-   - MP1 → requesting-code-review
-   - Batch 3 → subagent-driven-development (1 agent, needs review)
+4. Execution (all from single session):
+   - Batch 1 → dispatching-parallel-agents (3 subagents)
+   - Batch 2 → dispatching-parallel-agents (2 subagents)
+   - MP1 → controller runs requesting-code-review
+   - Batch 3 → subagent-driven-development (1 subagent, needs review)
 
 5. Learning:
    Update CLAUDE.md with JWT format, rate limiting patterns

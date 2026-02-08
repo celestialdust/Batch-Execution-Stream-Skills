@@ -77,12 +77,21 @@ A1 → A2 → A3 → [MP1] → C1 → A4 → [MP2] → A5 → Final Integration
 
 **Estimated completion:** [Based on critical path progress]
 
-## Active Work
+## Active Work (Single Session - Parallel Subagents)
 
-| Agent | Workstream | Task | Started | Status |
-|-------|-----------|------|---------|---------|
-| Agent-1 | WS-A | A1 | [timestamp] | In progress |
-| Agent-2 | WS-B | B1 | [timestamp] | In progress |
+All subagents dispatched from this controller session via Task tool.
+
+| Subagent | Worktree | Task | Dispatched | Status | Verification |
+|----------|----------|------|------------|--------|-------------|
+| Subagent-1 | `.worktrees/WS-A` | A1 | [timestamp] | 🔄 Running | Pending |
+| Subagent-2 | `.worktrees/WS-B` | B1 | [timestamp] | 🔄 Running | Pending |
+| Subagent-3 | `.worktrees/WS-A` | A2 | [timestamp] | ✅ Returned | ✅ Tests pass |
+
+**Update this table when:**
+- Dispatching a subagent (add row, mark 🔄 Running)
+- Subagent returns (mark ✅ Returned, record verification result)
+- Verification fails (mark 🚫 Failed, add to Issues & Blockers)
+- Promoting to ✅ Done in batch progress (remove from active work)
 
 ## Completed Work Log
 
@@ -115,8 +124,8 @@ Track learnings fed back to CLAUDE.md:
 - **Total Batches:** [N]
 - **Batches Complete:** [N]
 - **Merge Points:** [N] complete / [N] total
-- **Active Agents:** [N]
-- **Max Parallel Agents:** [N] (in Batch X)
+- **Active Subagents:** [N]
+- **Max Parallel Subagents:** [N] (in Batch X)
 
 ## Next Actions
 
@@ -130,7 +139,8 @@ Track learnings fed back to CLAUDE.md:
 ## Usage Notes
 
 **Update frequency:**
-- After each task completes
+- When dispatching subagents (mark tasks 🔄 Active)
+- When subagents return (verify + mark ✅ Done)
 - When starting new batch
 - At merge points
 - When blockers discovered
@@ -144,5 +154,5 @@ Track learnings fed back to CLAUDE.md:
 - See execution state at a glance
 - Identify bottlenecks quickly
 - Track critical path progress
-- Prevent agents from stepping on each other
-- Maintain context across sessions
+- Prevent subagents from stepping on each other
+- Track subagent dispatch and verification status

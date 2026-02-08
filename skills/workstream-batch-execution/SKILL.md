@@ -9,7 +9,9 @@ description: Use when executing approved design docs with multiple service bound
 
 Execute large implementation plans by mapping service boundaries to isolated workstreams, modeling task dependencies into batches and waves, and orchestrating parallel agent work with merge points.
 
-**Core principle:** Explicit specification of what can run in parallel, what must be sequential, and where parallel work converges = safe, scalable parallelism across 5-10+ agents.
+**Core principle:** Explicit specification of what can run in parallel, what must be sequential, and where parallel work converges = safe, scalable parallelism across 5-10+ subagents.
+
+**Execution model:** Everything runs in a **single Claude Code session**. The controller (you) orchestrates by dispatching subagents via the Task tool. Subagents work in parallel across isolated worktrees. The controller manages state, coordinates merge points, and captures learnings.
 
 **Announce at start:** "I'm using the workstream-batch-execution skill to orchestrate this implementation."
 
@@ -35,7 +37,7 @@ digraph when_to_use {
 **Use when:**
 - Design doc approved with multiple service boundaries (2+ independent services/modules)
 - Tasks have complex dependencies (parallel work, sequential work, convergence points)
-- Need to coordinate 5-10+ parallel agents without conflicts
+- Need to coordinate 5-10+ parallel subagents without conflicts
 - Large implementation requiring orchestration (not just sequential execution)
 
 **Don't use when:**
@@ -48,11 +50,13 @@ digraph when_to_use {
 
 | Element | Definition | Example |
 |---------|-----------|---------|
-| **Workstream (WS-<ID>)** | Independent service boundary | WS-1: Auth Service, WS-2: API Gateway |
-| **Batch** | Group of tasks with same dependency level | Batch 1: A1, B1, E1 (all parallel) |
-| **Wave** | Sequential grouping of batches | Wave 1 → Wave 2 → Wave 3 |
-| **Merge Point (MP)** | Convergence where parallel work integrates | MP1: A8 + B3 → unlocks C1 |
-| **Task ID** | Workstream + sequence number | A1 = first task in WS-A |
+| **Workstream (WS-<ID>)** | Independent service boundary | WS-A: Auth Service, WS-B: API Gateway |
+| **Batch** | Group of tasks at same dependency level (run in parallel) | Batch 1: A1, B1, E1 |
+| **Wave** | Sequence of batches between two merge points | Wave 1: [Batch 1 → Batch 2] → MP1 |
+| **Merge Point (MP)** | Convergence where parallel work integrates | MP1: A3 + B2 → unlocks C1 |
+| **Task ID** | Workstream letter + sequence number | A1 = first task in WS-A |
+| **Controller** | You (single session) - orchestrates subagents | Dispatches, reviews, tracks state |
+| **Subagent** | Dispatched worker (via Task tool) - implements one task | Works in assigned worktree |
 
 ## The Five-Phase Process
 
@@ -106,9 +110,29 @@ digraph when_to_use {
 1. **Extract tasks from design doc/plan**
    - Each task is actionable unit (2-5 minutes per step as per writing-plans)
    - Assign task IDs: `<WS-Letter><Number>` (A1, A2, B1, B2...)
-   - Document task clearly with acceptance criteria
+   - Document each task with full tracking metadata (see below)
 
-2. **Model dependencies**
+2. **Document task tracking metadata**
+
+   Every task must have:
+   - **Task ID:** WS-Letter + Number (e.g., A1, B3)
+   - **Spec:** What needs to be done (from implementation plan)
+   - **Acceptance Criteria:** How to verify it's done correctly
+   - **Status:** ⏳ Pending → 🔄 Active → ✅ Done (or 🚫 Blocked)
+   - **Assigned Subagent:** Which dispatched subagent is working on it
+   - **Dependencies:** Which tasks must complete before this one starts
+   - **Verification:** Exact commands/tests to run before marking done
+
+   ```markdown
+   ### Task A3: Auth Middleware
+   - **Spec:** Create JWT validation middleware for Express routes
+   - **Acceptance:** `pytest tests/auth/test_middleware.py` passes, covers token expiry + invalid token
+   - **Status:** ⏳ Pending
+   - **Dependencies:** A1 (data models), A2 (API endpoints)
+   - **Verification:** All tests green + integration test with B2
+   ```
+
+3. **Model dependencies**
    - **Parallel:** Tasks with no dependencies (can run simultaneously)
    - **Sequential:** Task B blocked by Task A (A must complete first)
    - **Convergence:** Multiple tasks must complete before next unlocks
@@ -145,6 +169,17 @@ digraph when_to_use {
 
 ### Batch 3 (Blocked on MP1)
 - **C1:** End-to-end auth flow (needs MP1)
+
+## Wave Structure
+
+Wave 1: Foundation (Batches 1-2)
+  ├─ Batch 1: A1, A2, B1, E1 (parallel)
+  └─ Batch 2: A3, B2 (parallel, blocked on Batch 1)
+
+Merge Point MP1: Integration test auth → gateway
+
+Wave 2: Integration (Batch 3)
+  └─ Batch 3: C1 (blocked on MP1)
 ```
 
 ### Phase 3: Dashboard Setup
@@ -173,6 +208,24 @@ digraph when_to_use {
 
 **Goal:** Execute tasks with optimal parallelization.
 
+**Execution model:** All work runs in a **single Claude Code session**. You are the **controller**. You dispatch **subagents** (via the Task tool) to do the actual implementation. Subagents run in parallel, each in its own worktree. You coordinate, review, and manage state.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  Controller (You - Single Claude Code Session)           │
+│                                                          │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐                 │
+│  │Subagent 1│  │Subagent 2│  │Subagent 3│  (parallel)   │
+│  │WS-A task │  │WS-B task │  │WS-E task │               │
+│  │.worktrees│  │.worktrees│  │.worktrees│               │
+│  │  /WS-A   │  │  /WS-B   │  │  /WS-E   │               │
+│  └─────────┘  └─────────┘  └─────────┘                 │
+│                                                          │
+│  Controller: update dashboard, check merge points,       │
+│  capture learnings, dispatch next batch                   │
+└──────────────────────────────────────────────────────────┘
+```
+
 **Process:**
 
 For each batch (in order):
@@ -180,48 +233,54 @@ For each batch (in order):
 1. **Identify runnable tasks** in current batch
    - All dependencies met?
    - Merge points cleared?
+   - Update dashboard: mark tasks 🔄 Active
 
 2. **Decide execution strategy:**
 
-   **If all tasks in batch are independent:**
+   **If all tasks in batch are independent (most common):**
    - **REQUIRED SUB-SKILL:** Use superpowers:dispatching-parallel-agents
-   - Dispatch one agent per task in parallel
-   - All agents work simultaneously in their respective worktrees
+   - Dispatch one subagent per task via Task tool, all in parallel
+   - Each subagent works in its assigned worktree
+   - All subagents run simultaneously within this single session
 
    **If tasks have subtle dependencies or need review between:**
    - **REQUIRED SUB-SKILL:** Use superpowers:subagent-driven-development
-   - Execute tasks sequentially with review checkpoints
+   - Dispatch subagents sequentially with review checkpoints
 
-3. **For each task:**
-   - Agent works in assigned worktree
+3. **For each subagent task:**
+   - Subagent works in assigned worktree (e.g., `.worktrees/WS-A`)
    - Follows TDD (superpowers:test-driven-development)
-   - Runs verification before marking complete
+   - Runs verification commands specified in task metadata
    - Commits to worktree's branch
+   - Returns summary of what was done + verification results
 
-4. **Update dashboard** after each task completion
-   - Mark task ✅
-   - Update batch status
-   - Check if merge point triggered
+4. **Controller reviews subagent results:**
+   - Read each subagent summary
+   - Verify reported tests actually pass
+   - Check for cross-worktree conflicts
+   - Update dashboard: mark tasks ✅ Done
 
 5. **At merge points:**
    - **REQUIRED SUB-SKILL:** Use superpowers:requesting-code-review
-   - Review integrated changes from multiple workstreams
-   - Run integration tests
+   - Controller merges branches from multiple worktrees
+   - Run integration tests across workstreams
    - Resolve conflicts if any
-   - Mark merge point complete
+   - Mark merge point complete on dashboard
 
 6. **Verify batch complete:**
-   - All tasks in batch ✅?
+   - All tasks in batch ✅ with verification passing?
    - All merge points cleared?
    - Run cross-workstream tests if applicable
 
 7. **Proceed to next batch**
 
 **Critical rules:**
-- Never start batch N+1 until batch N is 100% complete
+- Never start batch N+1 until batch N is 100% complete AND verified
 - Never skip merge points (integration issues compound)
-- Never dispatch parallel agents that touch same files
-- Always verify tests pass before marking task complete
+- Never dispatch parallel subagents that touch same files
+- Task marked ✅ ONLY after verification passes (tests green, review approved)
+- If verification fails: task stays 🔄 Active, all downstream stays ⏸️ Blocked
+- Controller must review every subagent result before marking done
 
 ### Phase 5: Learning Capture
 
@@ -373,13 +432,27 @@ This skill orchestrates other superpowers skills:
 - Capture learnings back to CLAUDE.md
 - Verify tests pass before batch completion
 
-## Real-World Impact
+## Troubleshooting: When Things Go Wrong
 
-From blog post (8 agents in parallel):
-- **Before:** Sequential execution, agents waiting on each other
-- **After:** Workstream isolation + batch modeling + dashboard tracking
-- **Result:** 8 agents working simultaneously without conflicts
-- **Key insight:** "Specs surface where assumptions break" - feedback loop critical
+### Task Verification Fails
+- **Don't:** Mark task complete anyway
+- **Do:** Keep task 🔄 Active, dispatch fix subagent, re-verify, then mark ✅
+- **Impact:** All downstream tasks stay ⏸️ Blocked until fixed
+
+### Merge Point Integration Test Fails
+- **Don't:** Skip the merge point or merge anyway
+- **Do:** Identify which workstream has the issue, dispatch fix subagent to that worktree, re-test
+- **Impact:** All downstream batches blocked until MP cleared
+
+### Hidden Dependency Discovered Mid-Batch
+- **Don't:** Continue parallel execution
+- **Do:** Pause affected subagents, update dependency model, re-sequence remaining batches
+- **Update:** Dashboard + implementation plan with corrected dependencies
+
+### Subagent Conflict (Two Subagents Touch Same Files)
+- **Don't:** Try to merge conflicting changes
+- **Do:** STOP - workstream decomposition was wrong
+- **Fix:** Re-decompose workstreams with clearer boundaries, restart affected tasks
 
 ## Example: Three-Service Implementation
 
