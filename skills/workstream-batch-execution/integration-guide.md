@@ -2,16 +2,29 @@
 
 Quick reference for which skills to call at each phase.
 
-## Skill Integration Map
+## Complete Workflow: From Idea to Implementation
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ BEFORE: superpowers:brainstorming                          │
-│ → Creates approved design doc with service boundaries       │
+│ STEP 1: superpowers:brainstorming                          │
+│ → Brainstorm features, explore approaches                   │
+│ → Create design doc with service boundaries                 │
+│ → Get user approval on architecture                         │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ THIS SKILL: workstream-batch-execution                      │
+│ STEP 2: superpowers:writing-plans                          │
+│ → Write exact implementation plan                           │
+│ → Break down into bite-sized tasks (2-5 min each)          │
+│ → Document files, commands, expected outputs               │
+│ → Save to docs/plans/YYYY-MM-DD-<feature>.md              │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│ STEP 3: workstream-batch-execution (THIS SKILL)            │
+│ → Decompose plan into workstreams (WS-<ID>)                │
+│ → Model dependencies (batches, waves, merge points)        │
+│ → Orchestrate parallel agent execution                      │
 └─────────────────────────────────────────────────────────────┘
                               ↓
         ┌─────────────────────┴─────────────────────┐
@@ -93,6 +106,29 @@ digraph execution_choice {
     "Need review between tasks?" -> "dispatching-parallel-agents\n(Simple parallel)" [label="no"];
 }
 ```
+
+## When to Use Each Skill
+
+### Use `superpowers:brainstorming` When:
+- Starting a new feature or project
+- Exploring different architectural approaches
+- Need to identify service boundaries
+- Want to discuss trade-offs and design decisions
+- **Output:** Design doc with approved architecture and service boundaries
+
+### Use `superpowers:writing-plans` When:
+- Design doc is approved
+- Ready to create detailed implementation steps
+- Need to break work into bite-sized tasks (2-5 min each)
+- Want exact commands, file paths, expected outputs documented
+- **Output:** Implementation plan at `docs/plans/YYYY-MM-DD-<feature>.md`
+
+### Use `workstream-batch-execution` (This Skill) When:
+- Implementation plan exists
+- Design has 2+ independent service boundaries
+- Tasks have complex dependencies (parallel, sequential, convergence)
+- Need to coordinate 5-10+ agents in parallel
+- **Output:** Executed implementation with dashboard tracking
 
 ## Phase-by-Phase Skill Calls
 
