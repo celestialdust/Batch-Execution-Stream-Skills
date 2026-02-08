@@ -11,10 +11,6 @@ Execute multi-workstream projects by:
 - **Visual Tracking:** ASCII dashboard for execution state visibility
 - **Learning Feedback:** Systematic capture of insights back to project docs
 
-## Inspired By
-
-This skill captures the workflow from [this blog post](https://x.com/xuejoey) on running 8 AI agents in parallel off a single design doc through explicit specification and execution modeling.
-
 ## Plugin Structure
 
 ```
