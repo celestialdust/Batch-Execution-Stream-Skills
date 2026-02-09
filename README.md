@@ -1,5 +1,7 @@
 # Batch Execution Stream Plugin
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/celestialdust/Batch-Execution-Stream-Skills)
+
 A Claude Code plugin for orchestrating parallel agent work across multiple service boundaries with workstream-batch execution model.
 
 ## Overview
